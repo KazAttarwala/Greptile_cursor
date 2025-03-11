@@ -1,0 +1,145 @@
+.changelog-list {
+  margin-top: 2rem;
+}
+
+.changelog-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.search-container {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-filter select {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.changelog-date-group {
+  margin-bottom: 3rem;
+}
+
+.date-header {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.change-item {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid var(--other-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.change-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.change-item.feature {
+  border-left-color: var(--feature-color);
+}
+
+.change-item.bugfix {
+  border-left-color: var(--bugfix-color);
+}
+
+.change-item.improvement {
+  border-left-color: var(--improvement-color);
+}
+
+.change-item.docs {
+  border-left-color: var(--docs-color);
+}
+
+.change-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.change-type {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.pr-link {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.change-summary {
+  font-size: 1.2rem;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.change-details {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.change-meta {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+@media (max-width: 768px) {
+  .changelog-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .change-item {
+    padding: 1rem;
+  }
+  
+  .change-summary {
+    font-size: 1.1rem;
+  }
+} 

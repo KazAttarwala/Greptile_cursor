@@ -3,22 +3,24 @@ import json
 from datetime import datetime
 
 from github_client import GitHubClient
-from ollama_client import OllamaClient
+from anthropic_client import AnthropicClient
 
 class ChangelogGenerator:
     """Main class for generating changelogs from GitHub PRs using LLM."""
     
     def __init__(self, github_token: Optional[str] = None, 
-                 ollama_model: str = "llama2"):
+                 anthropic_api_key: Optional[str] = None,
+                 anthropic_model: str = "claude-3-sonnet-20240229"):
         """
         Initialize the changelog generator.
         
         Args:
             github_token: GitHub personal access token
-            ollama_model: Ollama model to use
+            anthropic_api_key: Anthropic API key
+            anthropic_model: Anthropic model to use
         """
         self.github = GitHubClient(token=github_token)
-        self.llm = OllamaClient(model=ollama_model)
+        self.llm = AnthropicClient(api_key=anthropic_api_key, model=anthropic_model)
     
     def generate_for_repo(self, repo: str, days: int = 30, 
                           include_diff: bool = False) -> Dict[str, Any]:
