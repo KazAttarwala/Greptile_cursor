@@ -10,7 +10,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cli'))
 from storage import ChangelogStorage
 
 app = Flask(__name__, static_folder='build')
-CORS(app)  # Enable CORS for all routes
+
+# Configure CORS to allow requests from your React frontend
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
 # Initialize storage
 storage = ChangelogStorage(os.path.join(os.path.dirname(__file__), '..', 'data', 'changelog.db'))
@@ -97,7 +99,7 @@ def add_entry(repo_id):
         date=data['date'],
         entry=data['entry']
     )
-    
+
     return jsonify({"success": True})
 
 # Serve the React app for all other routes
@@ -109,4 +111,4 @@ def serve(path):
     return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    app.run(debug=True, port=5001)

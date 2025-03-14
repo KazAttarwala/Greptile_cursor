@@ -17,7 +17,7 @@ function App() {
   const fetchRepositories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/repos');
+      const response = await fetch('http://localhost:5001/api/repos');
       const data = await response.json();
       setRepositories(data);
       setError(null);
@@ -33,7 +33,7 @@ function App() {
   const fetchChangelog = async (repoId) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/repos/${repoId}/changelog`);
+      const response = await fetch(`http://localhost:5001/api/repos/${repoId}/changelog`);
       const data = await response.json();
       setChangelog(data);
       setError(null);
@@ -57,7 +57,7 @@ function App() {
 
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/repos/${selectedRepo.id}/entries`, {
+      const response = await fetch(`http://localhost:5001/api/repos/${selectedRepo.id}/entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
