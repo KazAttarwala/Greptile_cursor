@@ -123,9 +123,9 @@ class ChangelogStorage:
         
         cursor.execute("SELECT data FROM changelogs WHERE repo_id = ?", (repo_id,))
         row = cursor.fetchone()
-        
+
         conn.close()
-        
+
         if row:
             return json.loads(row[0])
         return None
@@ -142,19 +142,16 @@ class ChangelogStorage:
         changelog = self.get_changelog(repo_id) or {
             "repo": repo_id,
             "generated_at": datetime.now().isoformat(),
-            "changes": {}
+            "changes": []
         }
         
-        # Initialize the date entry if it doesn't exist
-        if date not in changelog["changes"]:
-            changelog["changes"][date] = []
-        
-        # Add the new entry
-        changelog["changes"][date].append(entry)
-        
+        # Add the entry with the date included in the entry
+        entry["date"] = date
+        changelog["changes"].append(entry)
+
         # Save the updated changelog
         self.save_changelog(repo_id, changelog)
-    
+
     def delete_repository(self, repo_id: str) -> None:
         """
         Delete a repository and its changelog.
