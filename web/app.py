@@ -16,7 +16,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 
 # Configure CORS to allow requests from your React frontend
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
+CORS(app, supports_credentials=True)
 
 # Initialize storage
 storage = ChangelogStorage(os.path.join(os.path.dirname(__file__), '..', 'data', 'changelog.db'))
@@ -60,41 +60,57 @@ def logout():
 
 @app.route('/api/auth/callback')
 def authorized():
-    token = oauth.github.authorize_access_token()
-    if not token:
-        return redirect('/login?error=access_denied')
-    
-    session['access_token'] = token['access_token']
-    
-    # Get user info from GitHub
-    resp = oauth.github.get('user', token=token)
-    if resp.status_code != 200:
-        return redirect('/login?error=github_api_error')
-    
-    user_data = resp.json()
-    
-    # Get user email if not public
-    if not user_data.get('email'):
-        emails_resp = oauth.github.get('user/emails', token=token)
-        if emails_resp.status_code == 200:
-            emails = emails_resp.json()
-            primary_email = next((email for email in emails if email.get('primary')), None)
-            if primary_email:
-                user_data['email'] = primary_email.get('email')
-    
-    # Save user to database
-    user_id = storage.create_or_update_user(
-        github_id=str(user_data.get('id')),
-        username=user_data.get('login'),
-        email=user_data.get('email'),
-        avatar_url=user_data.get('avatar_url'),
-        access_token=token['access_token']
-    )
-    
-    session['user_id'] = user_id
-    
-    # Redirect to frontend
-    return redirect('/')
+    try:
+        token = oauth.github.authorize_access_token()
+        print(f"Received token: {token is not None}")
+        
+        if not token:
+            print("No token received from GitHub")
+            return redirect('http://localhost:3000/login?error=access_denied')
+        
+        session['access_token'] = token['access_token']
+        print(f"Saved access token to session")
+        
+        # Get user info from GitHub
+        resp = oauth.github.get('user', token=token)
+        print(f"GitHub API response status: {resp.status_code}")
+        
+        if resp.status_code != 200:
+            print(f"GitHub API error: {resp.text}")
+            return redirect('http://localhost:3000/login?error=github_api_error')
+        
+        user_data = resp.json()
+        print(f"Got user data for: {user_data.get('login')}")
+        
+        # Get user email if not public
+        if not user_data.get('email'):
+            emails_resp = oauth.github.get('user/emails', token=token)
+            if emails_resp.status_code == 200:
+                emails = emails_resp.json()
+                primary_email = next((email for email in emails if email.get('primary')), None)
+                if primary_email:
+                    user_data['email'] = primary_email.get('email')
+                    print(f"Got primary email: {user_data['email']}")
+
+        # Save user to database
+        user_id = storage.create_or_update_user(
+            github_id=str(user_data.get('id')),
+            username=user_data.get('login'),
+            email=user_data.get('email'),
+            avatar_url=user_data.get('avatar_url'),
+            access_token=token['access_token']
+        )
+        print(f"Saved user to database with ID: {user_id}")
+        
+        session['user_id'] = user_id
+        print(f"Saved user_id to session: {user_id}")
+        
+        # Redirect to frontend
+        print(f"Redirecting to: http://localhost:3000")
+        return redirect('http://localhost:3000')
+    except Exception as e:
+        print(f"Error in authorization callback: {str(e)}")
+        return redirect('http://localhost:3000/login?error=server_error')
 
 @app.route('/api/auth/user')
 def get_user():
@@ -106,12 +122,22 @@ def get_user():
         return jsonify({"authenticated": False})
     
     # Get user from database by ID
-    # This would require adding a method to your storage class
-    # For now, we'll just return basic info
-    return jsonify({
-        "authenticated": True,
-        "user_id": user_id
-    })
+    try:
+        user = storage.get_user_by_id(user_id)
+        if not user:
+            return jsonify({"authenticated": False, "error": "User not found"})
+            
+        # Don't send sensitive information to the client
+        return jsonify({
+            "authenticated": True,
+            "user_id": user_id,
+            "username": user.get('username'),
+            "email": user.get('email'),
+            "avatar_url": user.get('avatar_url')
+        })
+    except Exception as e:
+        print(f"Error getting user info: {str(e)}")
+        return jsonify({"authenticated": False, "error": str(e)})
 
 @app.route('/api/repos', methods=['GET'])
 def get_repos():

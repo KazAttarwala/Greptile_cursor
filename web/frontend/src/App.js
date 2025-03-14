@@ -12,6 +12,20 @@ function App() {
 
   // Fetch user and repositories on component mount
   useEffect(() => {
+    // Check for error parameters in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get('error');
+    
+    if (errorParam) {
+      if (errorParam === 'access_denied') {
+        setError('GitHub access was denied or canceled.');
+      } else if (errorParam === 'github_api_error') {
+        setError('Error accessing GitHub API. Please try again.');
+      } else {
+        setError(`Authentication error: ${errorParam}`);
+      }
+    }
+    
     checkAuthStatus();
   }, []);
 
@@ -135,7 +149,17 @@ function App() {
         <h1>Changelog Viewer</h1>
         <div className="auth-container">
           {isAuthenticated ? (
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
+            <div className="user-info">
+              {user?.avatar_url && (
+                <img 
+                  src={user.avatar_url} 
+                  alt={user.username} 
+                  className="avatar"
+                />
+              )}
+              <span className="username">{user?.username || 'User'}</span>
+              <button onClick={handleLogout} className="logout-btn">Logout</button>
+            </div>
           ) : (
             <button onClick={handleLogin} className="login-btn">Login with GitHub</button>
           )}
@@ -145,6 +169,7 @@ function App() {
       {!isAuthenticated ? (
         <div className="login-prompt">
           <h2>Welcome to Changelog Viewer</h2>
+          {error && <div className="auth-error">{error}</div>}
           <p>Please login with GitHub to access your repositories and changelogs.</p>
           <button onClick={handleLogin} className="login-btn-large">Login with GitHub</button>
         </div>
