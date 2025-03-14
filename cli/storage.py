@@ -42,6 +42,20 @@ class ChangelogStorage:
         )
         ''')
         
+        # Create users table for GitHub authentication
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            github_id TEXT UNIQUE NOT NULL,
+            username TEXT NOT NULL,
+            email TEXT,
+            avatar_url TEXT,
+            access_token TEXT,
+            created_at TEXT,
+            last_login TEXT
+        )
+        ''')
+        
         conn.commit()
         conn.close()
     
@@ -169,4 +183,80 @@ class ChangelogStorage:
         cursor.execute("DELETE FROM repositories WHERE id = ?", (repo_id,))
         
         conn.commit()
-        conn.close() 
+        conn.close()
+
+    def get_user_by_github_id(self, github_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a user by their GitHub ID.
+        
+        Args:
+            github_id: GitHub user ID
+            
+        Returns:
+            User dictionary or None if not found
+        """
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT * FROM users WHERE github_id = ?", (github_id,))
+        row = cursor.fetchone()
+        
+        conn.close()
+        
+        if row:
+            return dict(row)
+        return None
+    
+    def create_or_update_user(self, github_id: str, username: str, email: Optional[str] = None,
+                             avatar_url: Optional[str] = None, access_token: Optional[str] = None) -> int:
+        """
+        Create a new user or update an existing one.
+        
+        Args:
+            github_id: GitHub user ID
+            username: GitHub username
+            email: User email
+            avatar_url: URL to user's avatar
+            access_token: GitHub OAuth access token
+            
+        Returns:
+            User ID
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Check if user exists
+        cursor.execute("SELECT id FROM users WHERE github_id = ?", (github_id,))
+        row = cursor.fetchone()
+        
+        now = datetime.now().isoformat()
+        
+        if row:
+            # Update existing user
+            cursor.execute(
+                """
+                UPDATE users 
+                SET username = ?, email = ?, avatar_url = ?, 
+                    access_token = ?, last_login = ?
+                WHERE github_id = ?
+                """,
+                (username, email, avatar_url, access_token, now, github_id)
+            )
+            user_id = row[0]
+        else:
+            # Create new user
+            cursor.execute(
+                """
+                INSERT INTO users 
+                (github_id, username, email, avatar_url, access_token, created_at, last_login)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (github_id, username, email, avatar_url, access_token, now, now)
+            )
+            user_id = cursor.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        return user_id 

@@ -7,17 +7,60 @@ function App() {
   const [changelog, setChangelog] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Fetch repositories on component mount
+  // Fetch user and repositories on component mount
   useEffect(() => {
-    fetchRepositories();
+    checkAuthStatus();
   }, []);
+
+  // Check if user is authenticated
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/user', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      setIsAuthenticated(data.authenticated);
+      if (data.authenticated) {
+        setUser(data);
+        fetchRepositories();
+      }
+    } catch (err) {
+      console.error('Error checking authentication status:', err);
+      setIsAuthenticated(false);
+    }
+  };
+
+  // Handle login
+  const handleLogin = () => {
+    window.location.href = 'http://localhost:5001/api/auth/login';
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:5001/api/auth/logout', {
+        credentials: 'include'
+      });
+      setIsAuthenticated(false);
+      setUser(null);
+      setSelectedRepo(null);
+      setChangelog(null);
+    } catch (err) {
+      console.error('Error logging out:', err);
+    }
+  };
 
   // Fetch repositories from the API
   const fetchRepositories = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5001/api/repos');
+      const response = await fetch('http://localhost:5001/api/repos', {
+        credentials: 'include'
+      });
       const data = await response.json();
       setRepositories(data);
       setError(null);
@@ -33,7 +76,9 @@ function App() {
   const fetchChangelog = async (repoId) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5001/api/repos/${repoId}/changelog`);
+      const response = await fetch(`http://localhost:5001/api/repos/${repoId}/changelog`, {
+        credentials: 'include'
+      });
       const data = await response.json();
       setChangelog(data);
       setError(null);
@@ -53,7 +98,7 @@ function App() {
 
   // Add a new changelog entry
   const addEntry = async (entry) => {
-    if (!selectedRepo) return;
+    if (!selectedRepo || !isAuthenticated) return;
 
     try {
       setLoading(true);
@@ -62,6 +107,7 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           date: new Date().toISOString().split('T')[0],
           entry: entry,
@@ -87,108 +133,123 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Changelog Viewer</h1>
-      </header>
-
-      <div className="container">
-        <div className="sidebar">
-          <h2>Repositories</h2>
-          {loading && <p>Loading...</p>}
-          {error && <p className="error">{error}</p>}
-          <ul className="repo-list">
-            {repositories.map((repo) => (
-              <li
-                key={repo.id}
-                className={selectedRepo?.id === repo.id ? 'selected' : ''}
-                onClick={() => handleRepoSelect(repo)}
-              >
-                {repo.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="main-content">
-          {selectedRepo ? (
-            <>
-              <h2>{selectedRepo.name} Changelog</h2>
-              <div className="add-entry">
-                <h3>Add New Entry</h3>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
-                    addEntry({
-                      summary: formData.get('summary'),
-                      details: formData.get('details'),
-                      type: formData.get('type'),
-                    });
-                    e.target.reset();
-                  }}
-                >
-                  <div className="form-group">
-                    <label htmlFor="summary">Summary:</label>
-                    <input
-                      type="text"
-                      id="summary"
-                      name="summary"
-                      required
-                      placeholder="Brief description of the change"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="details">Details:</label>
-                    <textarea
-                      id="details"
-                      name="details"
-                      placeholder="Additional details (optional)"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="type">Type:</label>
-                    <select id="type" name="type" required>
-                      <option value="feature">Feature</option>
-                      <option value="bugfix">Bug Fix</option>
-                      <option value="improvement">Improvement</option>
-                      <option value="docs">Documentation</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <button type="submit">Add Entry</button>
-                </form>
-              </div>
-
-              <div className="changelog">
-                {changelog?.changes?.map((change, index) => (
-                  <div key={index} className="changelog-entry">
-                    <div className="entry-header">
-                      <span className="entry-type">{change.type}</span>
-                      <span className="entry-date">
-                        {new Date(change.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <h4>{change.summary}</h4>
-                    {change.details && <p>{change.details}</p>}
-                    {change.pr_number && (
-                      <a
-                        href={change.pr_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="pr-link"
-                      >
-                        PR #{change.pr_number}
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
+        <div className="auth-container">
+          {isAuthenticated ? (
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
           ) : (
-            <div className="no-selection">
-              <p>Select a repository to view its changelog</p>
-            </div>
+            <button onClick={handleLogin} className="login-btn">Login with GitHub</button>
           )}
         </div>
-      </div>
+      </header>
+
+      {!isAuthenticated ? (
+        <div className="login-prompt">
+          <h2>Welcome to Changelog Viewer</h2>
+          <p>Please login with GitHub to access your repositories and changelogs.</p>
+          <button onClick={handleLogin} className="login-btn-large">Login with GitHub</button>
+        </div>
+      ) : (
+        <div className="container">
+          <div className="sidebar">
+            <h2>Repositories</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p className="error">{error}</p>}
+            <ul className="repo-list">
+              {repositories.map((repo) => (
+                <li
+                  key={repo.id}
+                  className={selectedRepo?.id === repo.id ? 'selected' : ''}
+                  onClick={() => handleRepoSelect(repo)}
+                >
+                  {repo.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="main-content">
+            {selectedRepo ? (
+              <>
+                <h2>{selectedRepo.name} Changelog</h2>
+                <div className="add-entry">
+                  <h3>Add New Entry</h3>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.target);
+                      addEntry({
+                        summary: formData.get('summary'),
+                        details: formData.get('details'),
+                        type: formData.get('type'),
+                      });
+                      e.target.reset();
+                    }}
+                  >
+                    <div className="form-group">
+                      <label htmlFor="summary">Summary:</label>
+                      <input
+                        type="text"
+                        id="summary"
+                        name="summary"
+                        required
+                        placeholder="Brief description of the change"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="details">Details:</label>
+                      <textarea
+                        id="details"
+                        name="details"
+                        placeholder="Additional details (optional)"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="type">Type:</label>
+                      <select id="type" name="type" required>
+                        <option value="feature">Feature</option>
+                        <option value="bugfix">Bug Fix</option>
+                        <option value="improvement">Improvement</option>
+                        <option value="docs">Documentation</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <button type="submit">Add Entry</button>
+                  </form>
+                </div>
+
+                <div className="changelog">
+                  {changelog?.changes?.map((change, index) => (
+                    <div key={index} className="changelog-entry">
+                      <div className="entry-header">
+                        <span className="entry-type">{change.type}</span>
+                        <span className="entry-date">
+                          {new Date(change.date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h4>{change.summary}</h4>
+                      {change.details && <p>{change.details}</p>}
+                      {change.pr_number && (
+                        <a
+                          href={change.pr_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="pr-link"
+                        >
+                          PR #{change.pr_number}
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="no-selection">
+                <p>Select a repository to view its changelog</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
