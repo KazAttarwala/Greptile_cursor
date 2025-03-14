@@ -9,7 +9,7 @@ class GitHubClient:
     def __init__(self, token: Optional[str] = None):
         """
         Initialize the GitHub client.
-        
+
         Args:
             token: GitHub personal access token (optional)
         """
@@ -25,7 +25,7 @@ class GitHubClient:
     def get_recent_prs(self, repo: str, days: int = 30, state: str = "closed") -> List[Dict[str, Any]]:
         """
         Get recent PRs from a repository.
-        
+
         Args:
             repo: Repository in format "owner/repo"
             days: Number of days to look back
@@ -35,10 +35,12 @@ class GitHubClient:
             List of PR dictionaries
         """
         url = f"{self.base_url}/repos/{repo}/pulls"
+        print(url)
         
         # Calculate date for filtering
         since_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        
+        print(since_date)
+
         params = {
             "state": state,
             "sort": "updated",
@@ -49,9 +51,8 @@ class GitHubClient:
         try:
             response = requests.get(url, headers=self.headers, params=params)
             response.raise_for_status()
-            
             prs = response.json()
-            
+            print(prs)
             # Filter PRs by date and merge status
             filtered_prs = []
             for pr in prs:
@@ -100,7 +101,7 @@ class GitHubClient:
             response.raise_for_status()
             
             return response.text
-            
+
         except requests.exceptions.RequestException as e:
             # Return empty string on error, as diff is optional
-            return "" 
+            return ""

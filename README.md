@@ -43,7 +43,7 @@ A developer-friendly tool to automatically generate changelogs from GitHub pull 
    ```bash
    export GITHUB_TOKEN=your_github_token
    export ANTHROPIC_API_KEY=your_anthropic_api_key
-   export ANTHROPIC_MODEL=claude-3-sonnet-20240229  # or your preferred model
+   export ANTHROPIC_MODEL=claude-3-7-sonnet-20250219  # or your preferred model
    ```
 
 5. Initialize the database with sample data:

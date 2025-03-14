@@ -10,7 +10,7 @@ class ChangelogGenerator:
     
     def __init__(self, github_token: Optional[str] = None, 
                  anthropic_api_key: Optional[str] = None,
-                 anthropic_model: str = "claude-3-sonnet-20240229"):
+                 anthropic_model: str = "claude-3-7-sonnet-20250219"):
         """
         Initialize the changelog generator.
         
@@ -22,7 +22,7 @@ class ChangelogGenerator:
         self.github = GitHubClient(token=github_token)
         self.llm = AnthropicClient(api_key=anthropic_api_key, model=anthropic_model)
     
-    def generate_for_repo(self, repo: str, days: int = 30, 
+    def generate_for_repo(self, repo: str, days: int = 30,
                           include_diff: bool = False) -> Dict[str, Any]:
         """
         Generate a changelog for a repository.
@@ -161,4 +161,4 @@ if __name__ == "__main__":
     generator = ChangelogGenerator()
     changelog = generator.generate_for_repo("owner/repo", days=30)
     markdown = generator.format_as_markdown(changelog)
-    print(markdown) 
+    print(markdown)

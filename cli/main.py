@@ -71,7 +71,7 @@ def get_generator(github_token=None, anthropic_api_key=None):
     # Use environment variables if tokens not provided
     if not github_token:
         github_token = os.environ.get("GITHUB_TOKEN")
-    
+
     if not anthropic_api_key:
         anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not anthropic_api_key:
@@ -79,8 +79,8 @@ def get_generator(github_token=None, anthropic_api_key=None):
             print("Set this variable or pass --anthropic-key to use Claude")
     
     # Get Anthropic model from environment or use default
-    anthropic_model = os.environ.get("ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
-    
+    anthropic_model = os.environ.get("ANTHROPIC_MODEL", "claude-3-7-sonnet-20250219")
+
     return ChangelogGenerator(
         github_token=github_token,
         anthropic_api_key=anthropic_api_key,
@@ -177,7 +177,7 @@ def cmd_add(args):
         "type": args.type,
         "date": datetime.now().isoformat()
     }
-    
+
     # Add to storage
     today = datetime.now().strftime("%Y-%m-%d")
     storage.add_changelog_entry(args.repo, today, entry)
