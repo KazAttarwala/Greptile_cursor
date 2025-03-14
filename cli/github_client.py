@@ -35,11 +35,9 @@ class GitHubClient:
             List of PR dictionaries
         """
         url = f"{self.base_url}/repos/{repo}/pulls"
-        print(url)
-        
+
         # Calculate date for filtering
         since_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        print(since_date)
 
         params = {
             "state": state,
@@ -52,7 +50,6 @@ class GitHubClient:
             response = requests.get(url, headers=self.headers, params=params)
             response.raise_for_status()
             prs = response.json()
-            print(prs)
             # Filter PRs by date and merge status
             filtered_prs = []
             for pr in prs:
