@@ -1,60 +1,50 @@
 import json
 import os
-import requests
 from typing import List, Dict, Any, Optional
 import time
+from anthropic import Anthropic
 
 class AnthropicClient:
     """Client for interacting with Anthropic Claude API for changelog generation."""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-sonnet-20240229"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-7-sonnet-20250219"):
         """
         Initialize the Anthropic client.
-        
+
         Args:
             api_key: Anthropic API key (defaults to ANTHROPIC_API_KEY env var)
-            model: The model to use (default: claude-3-sonnet-20240229)
+            model: The model to use (default: claude-3-7-sonnet-20250219)
         """
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         if not self.api_key:
             raise ValueError("Anthropic API key is required. Set ANTHROPIC_API_KEY environment variable or pass api_key parameter.")
-        
+
         self.model = model
-        self.api_endpoint = "https://api.anthropic.com/v1/messages"
-        self.headers = {
-            "x-api-key": self.api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json"
-        }
+        self.client = Anthropic(api_key=self.api_key)
     
     def _make_request(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """Make a request to the Anthropic API."""
-        payload = {
-            "model": self.model,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "max_tokens": 1024,
-            "temperature": 0.2
-        }
-        
-        if system_prompt:
-            payload["system"] = system_prompt
-        
         try:
-            response = requests.post(
-                self.api_endpoint, 
-                headers=self.headers, 
-                json=payload
-            )
-            response.raise_for_status()
+            messages = [
+                {"role": "user", "content": prompt}
+            ]
+
+            kwargs = {
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": 1024,
+                "temperature": 0.2
+            }
             
-            result = response.json()
-            return result.get("content", [{}])[0].get("text", "")
+            if system_prompt:
+                kwargs["system"] = system_prompt
             
-        except requests.exceptions.RequestException as e:
+            response = self.client.messages.create(**kwargs)
+            return response.content[0].text
+            
+        except Exception as e:
             raise ConnectionError(f"Failed to connect to Anthropic API: {str(e)}")
-    
+
     def generate_changelog_entry(self, pr_title: str, pr_description: str, 
                                  pr_diff: Optional[str] = None) -> Dict[str, str]:
         """
@@ -64,7 +54,7 @@ class AnthropicClient:
             pr_title: The title of the PR
             pr_description: The description of the PR
             pr_diff: Optional diff content to provide more context
-            
+
         Returns:
             Dictionary with generated changelog entry and metadata
         """
