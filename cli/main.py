@@ -4,6 +4,9 @@ import os
 import sys
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from github_client import GitHubClient
 from ollama_client import OllamaClient
@@ -17,7 +20,7 @@ def parse_args():
     # Add global options
     parser.add_argument("--github-token", help="GitHub API token")
     parser.add_argument("--anthropic-key", help="Anthropic API key")
-    
+
     # Create subparsers for different commands
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
     
@@ -79,7 +82,7 @@ def get_generator(github_token=None, anthropic_api_key=None):
     anthropic_model = os.environ.get("ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
     
     return ChangelogGenerator(
-        github_token=github_token, 
+        github_token=github_token,
         anthropic_api_key=anthropic_api_key,
         anthropic_model=anthropic_model
     )
@@ -279,7 +282,7 @@ def cmd_list(args):
                 last_updated = dt.strftime("%Y-%m-%d %H:%M")
             except:
                 pass
-        
+
         print(f"{repo['id']:<20} {repo['name']:<30} {last_updated:<20}")
     
     print()
