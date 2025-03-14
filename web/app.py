@@ -2,12 +2,9 @@ from flask import Flask, jsonify, request, send_from_directory, redirect, url_fo
 from flask_cors import CORS
 import os
 import sys
-import json
-import requests
 from datetime import datetime, timedelta
 from functools import wraps
 from authlib.integrations.flask_client import OAuth
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 # Add the CLI directory to the path so we can import the storage module
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'cli'))
