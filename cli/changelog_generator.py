@@ -107,8 +107,7 @@ class ChangelogGenerator:
         """
         repo = changelog_data.get("repo", "")
         changes = changelog_data.get("changes", [])
-        categories = changelog_data.get("categories", {})
-        
+
         # Start with header
         if version:
             markdown = f"# {version}\n\n"
@@ -117,22 +116,57 @@ class ChangelogGenerator:
             
         markdown += f"Generated on {datetime.now().strftime('%Y-%m-%d')}\n\n"
         
-        # If we have categories, use them to organize the output
-        if categories:
-            for category, pr_numbers in categories.items():
-                markdown += f"## {category}\n\n"
+        # Group changes by date
+        changes_by_date = {}
+        for change in changes:
+            date = change.get("date", "").split("T")[0]  # Extract date part from ISO format
+            if date not in changes_by_date:
+                changes_by_date[date] = []
+            changes_by_date[date].append(change)
+        
+        # Sort dates in reverse chronological order
+        sorted_dates = sorted(changes_by_date.keys(), reverse=True)
+        
+        # Format changes by date
+        for date in sorted_dates:
+            date_changes = changes_by_date[date]
+            
+            # Add date header
+            try:
+                formatted_date = datetime.fromisoformat(date).strftime("%B %d, %Y")
+            except:
+                formatted_date = date
                 
-                # Find changes for this category
-                category_changes = [c for c in changes if c["pr_number"] in pr_numbers]
+            markdown += f"## {formatted_date}\n\n"
+            
+            # Group by type if we have types
+            changes_by_type = {}
+            for change in date_changes:
+                change_type = change.get("type", "other")
+                if change_type not in changes_by_type:
+                    changes_by_type[change_type] = []
+                changes_by_type[change_type].append(change)
+            
+            # Format each type
+            for change_type, type_changes in changes_by_type.items():
+                # Format the type header
+                type_header = change_type.capitalize()
+                if change_type == "bugfix":
+                    type_header = "Bug Fixes"
+                elif change_type == "feature":
+                    type_header = "New Features"
+                elif change_type == "improvement":
+                    type_header = "Improvements"
+                    
+                markdown += f"### {type_header}\n\n"
                 
-                # Sort by date
-                category_changes.sort(key=lambda x: x.get("date", ""), reverse=True)
-                
-                for change in category_changes:
+                # Add each change
+                for change in type_changes:
                     markdown += f"- {change.get('summary')}"
                     
-                    # Add PR reference
-                    markdown += f" ([#{change.get('pr_number')}]({change.get('pr_url')}))"
+                    # Add PR reference if available
+                    if change.get("pr_number"):
+                        markdown += f" ([#{change.get('pr_number')}]({change.get('pr_url')}))"
                     
                     # Add details if available
                     if change.get("details"):
@@ -140,18 +174,6 @@ class ChangelogGenerator:
                         
                     markdown += "\n"
                 
-                markdown += "\n"
-        else:
-            # No categories, just list changes by date
-            sorted_changes = sorted(changes, key=lambda x: x.get("date", ""), reverse=True)
-            
-            for change in sorted_changes:
-                markdown += f"- {change.get('summary')}"
-                markdown += f" ([#{change.get('pr_number')}]({change.get('pr_url')}))"
-                
-                if change.get("details"):
-                    markdown += f"\n  {change.get('details')}"
-                    
                 markdown += "\n"
         
         return markdown
