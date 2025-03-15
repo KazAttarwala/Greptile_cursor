@@ -23,10 +23,10 @@ class ChangelogGenerator:
         self.llm = AnthropicClient(api_key=anthropic_api_key, model=anthropic_model)
     
     def generate_for_repo(self, repo: str, days: int = 30,
-                          include_diff: bool = False) -> Dict[str, Any]:
+                          include_diff: bool = True) -> Dict[str, Any]:
         """
         Generate a changelog for a repository.
-        
+
         Args:
             repo: Repository in format "owner/repo"
             days: Number of days to look back
@@ -55,29 +55,9 @@ class ChangelogGenerator:
         for i, pr in enumerate(prs):
             print(f"Processing PR #{pr['number']} ({i+1}/{len(prs)}): {pr['title']}")
             
-            # Optionally get diff for better context
-            diff = None
-            if include_diff:
-                diff = self.github.get_pr_diff(repo, pr['number'])
-            
-            # Generate changelog entry
-            entry = self.llm.generate_changelog_entry(
-                pr_title=pr['title'],
-                pr_description=pr['description'],
-                pr_diff=diff
-            )
-            
-            # Add PR metadata to entry
-            changes.append({
-                "pr_number": pr['number'],
-                "pr_url": pr['html_url'],
-                "author": pr['author'],
-                "date": pr['merged_at'] or datetime.now().isoformat(),
-                "summary": entry.get('summary', ''),
-                "details": entry.get('details', ''),
-                "type": entry.get('type', 'other'),
-                "labels": pr.get('labels', [])
-            })
+            # Generate changelog entry for this PR
+            change = self.generate_for_pr(repo, pr, include_diff)
+            changes.append(change)
         
         # Categorize changes
         print("Categorizing changes...")
@@ -91,6 +71,42 @@ class ChangelogGenerator:
             "generated_at": datetime.now().isoformat(),
             "changes": changes,
             "categories": {k: [c["pr_number"] for c in v] for k, v in categories.items()}
+        }
+    
+    def generate_for_pr(self, repo: str, pr: Dict[str, Any], include_diff: bool = True) -> Dict[str, Any]:
+        """
+        Generate a changelog entry for a specific PR.
+        
+        Args:
+            repo: Repository in format "owner/repo"
+            pr: PR dictionary with title, description, etc.
+            include_diff: Whether to include PR diff for better context
+            
+        Returns:
+            Dictionary with changelog entry
+        """
+        # Optionally get diff for better context
+        diff = None
+        if include_diff:
+            diff = self.github.get_pr_diff(repo, pr['number'])
+        
+        # Generate changelog entry
+        entry = self.llm.generate_changelog_entry(
+            pr_title=pr['title'],
+            pr_description=pr['description'],
+            pr_diff=diff
+        )
+        
+        # Add PR metadata to entry
+        return {
+            "pr_number": pr['number'],
+            "pr_url": pr['html_url'],
+            "author": pr['author'],
+            "date": pr['merged_at'] or datetime.now().isoformat(),
+            "summary": entry.get('summary', ''),
+            "details": entry.get('details', ''),
+            "type": entry.get('type', 'other'),
+            "labels": pr.get('labels', [])
         }
     
     def format_as_markdown(self, changelog_data: Dict[str, Any], 

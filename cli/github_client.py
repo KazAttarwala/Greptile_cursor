@@ -22,6 +22,73 @@ class GitHubClient:
         if self.token:
             self.headers["Authorization"] = f"token {self.token}"
     
+    def get_user_info(self) -> Dict[str, Any]:
+        """
+        Get information about the authenticated user.
+        
+        Returns:
+            Dictionary with user information
+        """
+        url = f"{self.base_url}/user"
+        
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Failed to fetch user info from GitHub: {str(e)}")
+    
+    def get_user_repositories(self) -> List[Dict[str, Any]]:
+        """
+        Get repositories the authenticated user has access to.
+        
+        Returns:
+            List of repository dictionaries
+        """
+        url = f"{self.base_url}/user/repos"
+        params = {
+            "per_page": 100,
+            "sort": "updated"
+        }
+        
+        try:
+            response = requests.get(url, headers=self.headers, params=params)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Failed to fetch repositories from GitHub: {str(e)}")
+    
+    def get_pr(self, repo: str, pr_number: int) -> Dict[str, Any]:
+        """
+        Get details for a specific PR.
+        
+        Args:
+            repo: Repository in format "owner/repo"
+            pr_number: PR number
+            
+        Returns:
+            Dictionary with PR information
+        """
+        url = f"{self.base_url}/repos/{repo}/pulls/{pr_number}"
+        
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            pr_data = response.json()
+            
+            # Format the PR data for consistency with get_recent_prs
+            return {
+                "number": pr_data["number"],
+                "title": pr_data["title"],
+                "description": pr_data["body"] or "",
+                "author": pr_data["user"]["login"],
+                "merged_at": pr_data["merged_at"],
+                "html_url": pr_data["html_url"],
+                "labels": [label["name"] for label in pr_data["labels"]]
+            }
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Failed to fetch PR from GitHub: {str(e)}")
+    
     def get_recent_prs(self, repo: str, days: int = 30, state: str = "closed") -> List[Dict[str, Any]]:
         """
         Get recent PRs from a repository.
@@ -96,9 +163,9 @@ class GitHubClient:
             
             response = requests.get(url, headers=headers)
             response.raise_for_status()
-            
             return response.text
 
         except requests.exceptions.RequestException as e:
             # Return empty string on error, as diff is optional
+            print(f"Warning: Failed to fetch diff for PR #{pr_number}: {str(e)}")
             return ""
