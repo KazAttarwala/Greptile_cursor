@@ -3,6 +3,8 @@
 A developer-friendly tool to automatically generate changelogs from GitHub pull requests using AI, with a clean web interface to display the results.
 
 ## Notes for reviewers
+I used Cursor and Anthropic for this project
+
 I wanted to make the developer tool really simple without a need for manual intervention. So it works by initializing a Github repo and then specifying a number of days to look back in that repo. The code grabs all of the closed PRs in the specified timeframe and uses Anthropic's LLM
 to autogenerate a changelog based on the diffs in the PRs. You can preview the changelog after it is generated and also create manual changelogs without AI.
 
