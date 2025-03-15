@@ -80,7 +80,7 @@ python cli/main.py init owner/repo --name "Display Name"
 ### Generate Changelog from PRs
 
 ```bash
-python cli/main.py generate --repo repo-id --days 30
+python cli/main.py generate --repo repo-id --days 30 --include-diff
 ```
 
 ### Add a Manual Entry
