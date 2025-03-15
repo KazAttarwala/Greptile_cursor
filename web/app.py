@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, send_from_directory, redirect, url_fo
 from flask_cors import CORS
 import os
 import sys
+import uuid
 from datetime import datetime, timedelta
 from functools import wraps
 from authlib.integrations.flask_client import OAuth
@@ -157,7 +158,7 @@ def get_changelog(repo_id):
 
 @app.route('/api/repos/<repo_id>/entries/<entry_id>', methods=['PUT'])
 @auth_required
-def update_changelog_entry(repo_id, entry_id):
+def update_changelog(repo_id, entry_id):
     """Update or create a changelog entry for a repository."""
     data = request.json
     storage.update_changelog_entry(repo_id, entry_id, data)
@@ -203,14 +204,20 @@ def add_entry(repo_id):
     if not repo_exists:
         return jsonify({"error": "Repository not found"}), 404
     
+    # Generate a UUID for the entry if not provided
+    entry = data['entry']
+    if 'id' not in entry:
+        entry['id'] = str(uuid.uuid4())
+    
     # Add the entry
-    storage.add_changelog_entry(
+    entry_uuid = storage.add_changelog_entry(
         repo_id=repo_id,
         date=data['date'],
-        entry=data['entry']
+        entry=entry
     )
 
-    return jsonify({"success": True})
+    # Return the UUID in the response
+    return jsonify({"success": True, "id": entry_uuid})
 
 # Serve the React app for all other routes
 @app.route('/', defaults={'path': ''})

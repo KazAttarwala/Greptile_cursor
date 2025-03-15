@@ -3,6 +3,7 @@ import sqlite3
 import os
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
+import uuid
 
 class ChangelogStorage:
     """Storage layer for changelog data using SQLite."""
@@ -21,7 +22,7 @@ class ChangelogStorage:
         """Create the database tables if they don't exist."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Create repositories table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS repositories (
@@ -70,7 +71,7 @@ class ChangelogStorage:
         """
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute(
             "INSERT OR REPLACE INTO repositories (id, name, url, last_updated) VALUES (?, ?, ?, ?)",
             (repo_id, name, url, datetime.now().isoformat())
@@ -78,7 +79,7 @@ class ChangelogStorage:
         
         conn.commit()
         conn.close()
-    
+
     def get_repositories(self) -> List[Dict[str, Any]]:
         """
         Get all repositories.
@@ -144,7 +145,7 @@ class ChangelogStorage:
             return json.loads(row[0])
         return None
     
-    def add_changelog_entry(self, repo_id: str, date: str, entry: Dict[str, Any]) -> None:
+    def add_changelog_entry(self, repo_id: str, date: str, entry: Dict[str, Any]) -> str:
         """
         Add a new entry to a repository's changelog.
         
@@ -152,6 +153,9 @@ class ChangelogStorage:
             repo_id: Repository identifier
             date: Date string (YYYY-MM-DD)
             entry: Changelog entry dictionary
+            
+        Returns:
+            The UUID of the new entry
         """
         changelog = self.get_changelog(repo_id) or {
             "repo": repo_id,
@@ -159,12 +163,18 @@ class ChangelogStorage:
             "changes": []
         }
         
-        # Add the entry with the date included in the entry
+        # Generate a UUID
+        entry_uuid = str(uuid.uuid4())
+        
+        # Add the entry with the date and UUID included
         entry["date"] = date
+        entry["id"] = entry_uuid
         changelog["changes"].append(entry)
 
         # Save the updated changelog
         self.save_changelog(repo_id, changelog)
+        
+        return entry_uuid
 
     def update_changelog_entry(self, repo_id: str, entry_id: str, entry: Dict[str, Any]) -> None:
         """
@@ -182,7 +192,9 @@ class ChangelogStorage:
         # Find the entry to update
         for change in changelog["changes"]:
             if change["id"] == entry_id:
-                change.update(entry)
+                # Only update the specific fields provided in entry
+                for key, value in entry.items():
+                    change[key] = value
                 break
 
         # Save the updated changelog

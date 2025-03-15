@@ -168,13 +168,13 @@ function App() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({
-          entry: {
+        body: JSON.stringify(
+          {
             summary: updatedEntry.summary,
             details: updatedEntry.details,
             type: updatedEntry.type,
           },
-        }),
+        ),
       });
 
       if (!response.ok) {

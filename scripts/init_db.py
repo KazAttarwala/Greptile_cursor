@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+import uuid
 from datetime import datetime, timedelta
 
 # Add the CLI directory to the path
@@ -17,7 +18,7 @@ def init_sample_data():
     # Initialize storage
     db_path = os.path.join(data_dir, 'changelog.db')
     storage = ChangelogStorage(db_path)
-    
+
     # Add sample repositories
     repos = [
         {
@@ -36,7 +37,7 @@ def init_sample_data():
             "url": "https://github.com/example/mobile"
         }
     ]
-    
+
     for repo in repos:
         storage.add_repository(repo["id"], repo["name"], repo["url"])
         print(f"Added repository: {repo['name']}")
@@ -50,6 +51,7 @@ def init_sample_data():
         "generated_at": today.isoformat(),
         "changes": [
             {
+                "id": str(uuid.uuid4()),
                 "date": today.strftime("%Y-%m-%d"),
                 "pr_number": 123,
                 "pr_url": "https://github.com/example/frontend/pull/123",
@@ -59,6 +61,7 @@ def init_sample_data():
                 "type": "feature"
             },
             {
+                "id": str(uuid.uuid4()),
                 "date": today.strftime("%Y-%m-%d"),
                 "pr_number": 124,
                 "pr_url": "https://github.com/example/frontend/pull/124",
@@ -68,6 +71,7 @@ def init_sample_data():
                 "type": "bugfix"
             },
             {
+                "id": str(uuid.uuid4()),
                 "date": (today - timedelta(days=5)).strftime("%Y-%m-%d"),
                 "pr_number": 120,
                 "pr_url": "https://github.com/example/frontend/pull/120",
@@ -77,6 +81,7 @@ def init_sample_data():
                 "type": "improvement"
             },
             {
+                "id": str(uuid.uuid4()),
                 "date": (today - timedelta(days=10)).strftime("%Y-%m-%d"),
                 "pr_number": 115,
                 "pr_url": "https://github.com/example/frontend/pull/115",
@@ -100,6 +105,7 @@ def init_sample_data():
         "generated_at": today.isoformat(),
         "changes": [
             {
+                "id": str(uuid.uuid4()),
                 "date": today.strftime("%Y-%m-%d"),
                 "pr_number": 87,
                 "pr_url": "https://github.com/example/backend/pull/87",
@@ -109,6 +115,7 @@ def init_sample_data():
                 "type": "feature"
             },
             {
+                "id": str(uuid.uuid4()),
                 "date": (today - timedelta(days=3)).strftime("%Y-%m-%d"),
                 "pr_number": 85,
                 "pr_url": "https://github.com/example/backend/pull/85",
@@ -118,6 +125,7 @@ def init_sample_data():
                 "type": "bugfix"
             },
             {
+                "id": str(uuid.uuid4()),
                 "date": (today - timedelta(days=3)).strftime("%Y-%m-%d"),
                 "pr_number": 84,
                 "pr_url": "https://github.com/example/backend/pull/84",
