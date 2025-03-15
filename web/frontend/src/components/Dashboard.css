@@ -1,0 +1,136 @@
+.dashboard {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card h3 {
+  margin-top: 0;
+  color: #6c757d;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #343a40;
+}
+
+.metric-subtitle {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.change-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.change-type {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.type-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.type-badge.feature {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.type-badge.bugfix {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.type-badge.improvement {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.type-badge.docs {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.type-badge.other {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.type-count {
+  font-weight: bold;
+}
+
+.activity-chart {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+  height: 150px;
+  margin-top: 1rem;
+}
+
+.activity-bars {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  gap: 2px;
+}
+
+.activity-bar-container {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.activity-bar {
+  width: 100%;
+  background-color: #4CAF50;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease;
+}
+
+.date-label {
+  font-size: 0.7rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.dashboard-placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  font-style: italic;
+} 

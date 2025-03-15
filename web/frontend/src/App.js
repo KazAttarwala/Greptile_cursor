@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import Dashboard from './components/Dashboard';
 
 function App() {
   const [repositories, setRepositories] = useState([]);
@@ -195,6 +196,7 @@ function App() {
           <div className="main-content">
             {selectedRepo ? (
               <>
+                <Dashboard repository={selectedRepo} changelog={changelog} />
                 <h2>{selectedRepo.name} Changelog</h2>
                 <div className="add-entry">
                   <h3>Add New Entry</h3>
