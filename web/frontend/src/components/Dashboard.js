@@ -5,7 +5,8 @@ function Dashboard({ repository, changelog }) {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChange, setSelectedChange] = useState(null);
-  const [viewAllChanges, setViewAllChanges] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 10;
 
   // Skip rendering if no data
   if (!repository || !changelog || !changelog.changes) {
@@ -58,22 +59,42 @@ function Dashboard({ repository, changelog }) {
     return typeMatch && searchMatch;
   });
   
+  // Sort changes by date (newest first)
   const sortedChanges = [...filteredChanges].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const displayedChanges = viewAllChanges ? sortedChanges : sortedChanges.slice(0, 5);
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedChanges.length / entriesPerPage);
+  const indexOfLastEntry = currentPage * entriesPerPage;
+  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+  const currentEntries = sortedChanges.slice(indexOfFirstEntry, indexOfLastEntry);
 
-  // Function to toggle view all changes
-  const toggleViewAllChanges = () => {
-    setViewAllChanges(!viewAllChanges);
+  // Function to change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Function to go to next page
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Function to go to previous page
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   // Function to handle search input change
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   // Function to clear search
   const clearSearch = () => {
     setSearchQuery('');
+    setCurrentPage(1); // Reset to first page when clearing search
   };
 
   // Function to handle change click
@@ -167,7 +188,7 @@ function Dashboard({ repository, changelog }) {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h2>Dashboard: {repository.name}</h2>
+        <h2>Metrics</h2>
         <button className="export-button" onClick={downloadMarkdown}>
           Export as Markdown
         </button>
@@ -266,12 +287,15 @@ function Dashboard({ repository, changelog }) {
 
       <div className="latest-changes-card">
         <div className="latest-changes-header">
-          <h3>Latest Changes</h3>
+          <h3>All Changes</h3>
           <div className="filter-controls">
             <div className="filter-buttons">
               <button 
                 className={`filter-button ${activeFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setActiveFilter('all')}
+                onClick={() => {
+                  setActiveFilter('all');
+                  setCurrentPage(1);
+                }}
               >
                 All
               </button>
@@ -279,7 +303,10 @@ function Dashboard({ repository, changelog }) {
                 <button 
                   key={type}
                   className={`filter-button ${activeFilter === type ? 'active' : ''}`}
-                  onClick={() => setActiveFilter(type)}
+                  onClick={() => {
+                    setActiveFilter(type);
+                    setCurrentPage(1);
+                  }}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </button>
@@ -302,8 +329,8 @@ function Dashboard({ repository, changelog }) {
           </div>
         </div>
         <div className="latest-changes-list">
-          {displayedChanges.length > 0 ? (
-            displayedChanges.map((change, index) => (
+          {currentEntries.length > 0 ? (
+            currentEntries.map((change, index) => (
               <div 
                 key={index} 
                 className={`latest-change-item ${selectedChange === change ? 'expanded' : ''}`}
@@ -359,13 +386,24 @@ function Dashboard({ repository, changelog }) {
           )}
         </div>
         
-        {filteredChanges.length > 5 && (
-          <div className="view-all-container">
+        {totalPages > 1 && (
+          <div className="pagination">
             <button 
-              className="view-all-button" 
-              onClick={toggleViewAllChanges}
+              className="pagination-button"
+              onClick={prevPage}
+              disabled={currentPage === 1}
             >
-              {viewAllChanges ? 'Show Less' : `View All (${filteredChanges.length})`}
+              &laquo; Previous
+            </button>
+            <div className="pagination-info">
+              Page {currentPage} of {totalPages} ({filteredChanges.length} entries)
+            </div>
+            <button 
+              className="pagination-button" 
+              onClick={nextPage} 
+              disabled={currentPage === totalPages}
+            >
+              Next &raquo;
             </button>
           </div>
         )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Dashboard from './components/Dashboard';
+import AddEntryModal from './components/AddEntryModal';
 
 function App() {
   const [repositories, setRepositories] = useState([]);
@@ -10,6 +11,7 @@ function App() {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAddEntryModalOpen, setIsAddEntryModalOpen] = useState(false);
 
   // Fetch user and repositories on component mount
   useEffect(() => {
@@ -111,6 +113,16 @@ function App() {
     fetchChangelog(repo.id);
   };
 
+  // Open add entry modal
+  const openAddEntryModal = () => {
+    setIsAddEntryModalOpen(true);
+  };
+
+  // Close add entry modal
+  const closeAddEntryModal = () => {
+    setIsAddEntryModalOpen(false);
+  };
+
   // Add a new changelog entry
   const addEntry = async (entry) => {
     if (!selectedRepo || !isAuthenticated) return;
@@ -147,7 +159,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Changelog Viewer</h1>
+        <h1>Changelog Dashboard</h1>
         <div className="auth-container">
           {isAuthenticated ? (
             <div className="user-info">
@@ -169,7 +181,7 @@ function App() {
 
       {!isAuthenticated ? (
         <div className="login-prompt">
-          <h2>Welcome to Changelog Viewer</h2>
+          <h2>Welcome to Changelog Dashboard</h2>
           {error && <div className="auth-error">{error}</div>}
           <p>Please login with GitHub to access your repositories and changelogs.</p>
           <button onClick={handleLogin} className="login-btn-large">Login with GitHub</button>
@@ -196,78 +208,13 @@ function App() {
           <div className="main-content">
             {selectedRepo ? (
               <>
+                <div className="dashboard-actions">
+                  <h2>{selectedRepo.name}</h2>
+                  <button className="add-entry-btn" onClick={openAddEntryModal}>
+                    Add New Entry
+                  </button>
+                </div>
                 <Dashboard repository={selectedRepo} changelog={changelog} />
-                <h2>{selectedRepo.name} Changelog</h2>
-                <div className="add-entry">
-                  <h3>Add New Entry</h3>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.target);
-                      addEntry({
-                        summary: formData.get('summary'),
-                        details: formData.get('details'),
-                        type: formData.get('type'),
-                      });
-                      e.target.reset();
-                    }}
-                  >
-                    <div className="form-group">
-                      <label htmlFor="summary">Summary:</label>
-                      <input
-                        type="text"
-                        id="summary"
-                        name="summary"
-                        required
-                        placeholder="Brief description of the change"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="details">Details:</label>
-                      <textarea
-                        id="details"
-                        name="details"
-                        placeholder="Additional details (optional)"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="type">Type:</label>
-                      <select id="type" name="type" required>
-                        <option value="feature">Feature</option>
-                        <option value="bugfix">Bug Fix</option>
-                        <option value="improvement">Improvement</option>
-                        <option value="docs">Documentation</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <button type="submit">Add Entry</button>
-                  </form>
-                </div>
-
-                <div className="changelog">
-                  {changelog?.changes?.map((change, index) => (
-                    <div key={index} className="changelog-entry">
-                      <div className="entry-header">
-                        <span className="entry-type">{change.type}</span>
-                        <span className="entry-date">
-                          {new Date(change.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h4>{change.summary}</h4>
-                      {change.details && <p>{change.details}</p>}
-                      {change.pr_number && (
-                        <a
-                          href={change.pr_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="pr-link"
-                        >
-                          PR #{change.pr_number}
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
               </>
             ) : (
               <div className="no-selection">
@@ -277,6 +224,12 @@ function App() {
           </div>
         </div>
       )}
+
+      <AddEntryModal 
+        isOpen={isAddEntryModalOpen} 
+        onClose={closeAddEntryModal} 
+        onSubmit={addEntry} 
+      />
     </div>
   );
 }

@@ -276,3 +276,40 @@ button:hover {
   color: white;
   font-weight: 500;
 }
+
+.dashboard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-actions h2 {
+  margin: 0;
+  color: #343a40;
+  font-size: 1.5rem;
+}
+
+.add-entry-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.add-entry-btn:hover {
+  background-color: #218838;
+}
+
+.add-entry-btn:before {
+  content: "+";
+  margin-right: 0.5rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
