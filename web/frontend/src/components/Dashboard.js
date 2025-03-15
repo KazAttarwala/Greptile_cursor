@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
+import EditEntryModal from './EditEntryModal';
 
-function Dashboard({ repository, changelog }) {
+function Dashboard({ repository, changelog, onEditEntry }) {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChange, setSelectedChange] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const entriesPerPage = 10;
 
   // Skip rendering if no data
@@ -107,6 +110,24 @@ function Dashboard({ repository, changelog }) {
     setSelectedChange(null);
   };
 
+  // Function to format date correctly
+  const formatDate = (dateString) => {
+    // Create a date object with the UTC time
+    const date = new Date(dateString);
+    // Format the date manually to avoid timezone issues
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1;
+    const day = date.getUTCDate();
+    
+    // Get month name
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    return `${monthNames[month-1]} ${day}, ${year}`;
+  };
+
   // Function to generate markdown export
   const generateMarkdown = () => {
     // Group changes by date
@@ -185,6 +206,26 @@ function Dashboard({ repository, changelog }) {
     URL.revokeObjectURL(url);
   };
 
+  // Function to handle edit button click
+  const handleEditClick = (e, change) => {
+    e.stopPropagation(); // Prevent triggering the parent click event
+    setEditingEntry(change);
+    setIsEditModalOpen(true);
+  };
+
+  // Function to close edit modal
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingEntry(null);
+  };
+
+  // Function to handle edit submission
+  const handleEditSubmit = (updatedEntry) => {
+    if (onEditEntry) {
+      onEditEntry(updatedEntry);
+    }
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
@@ -193,7 +234,7 @@ function Dashboard({ repository, changelog }) {
           Export as Markdown
         </button>
       </div>
-      
+
       <div className="metrics-grid">
         <div className="metric-card">
           <h3>Total Changes</h3>
@@ -223,7 +264,6 @@ function Dashboard({ repository, changelog }) {
         <div className="activity-chart">
           <h3>Activity Timeline</h3>
           <div className="chart-container">
-            {/* Simple visual representation of activity */}
             <div className="activity-bars">
               {Array.from({ length: 30 }).map((_, i) => {
                 const date = new Date();
@@ -234,23 +274,29 @@ function Dashboard({ repository, changelog }) {
                   change.date && change.date.startsWith(dateStr)
                 ).length;
                 
-                const height = dayChanges ? Math.min(100, dayChanges * 20) : 5;
+                // Only calculate height if there are changes
+                const height = dayChanges ? Math.min(100, dayChanges * 20) : 0;
+                
+                // Format date for label
+                const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
                 
                 return (
                   <div key={i} className="activity-bar-container">
-                    <div 
-                      className="activity-bar" 
-                      style={{ height: `${height}%` }}
-                      title={`${dayChanges} changes on ${dateStr}`}
-                    >
-                      {dayChanges > 0 && (
-                        <div className="activity-tooltip">
-                          <div className="tooltip-date">{new Date(dateStr).toLocaleDateString()}</div>
-                          <div className="tooltip-count">{dayChanges} changes</div>
-                        </div>
-                      )}
-                    </div>
-                    {i % 5 === 0 && <div className="date-label">{date.getDate()}</div>}
+                    {height > 0 && (
+                      <div 
+                        className="activity-bar" 
+                        style={{ height: `${height}%` }}
+                        title={`${dayChanges} changes on ${dateStr}`}
+                      >
+                        {dayChanges > 0 && (
+                          <div className="activity-tooltip">
+                            <div className="tooltip-date">{formatDate(dateStr)}</div>
+                            <div className="tooltip-count">{dayChanges} changes</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {i % 3 === 0 && <div className="date-label">{monthDay}</div>}
                   </div>
                 );
               })}
@@ -338,9 +384,18 @@ function Dashboard({ repository, changelog }) {
               >
                 <div className="latest-change-header">
                   <span className={`type-badge ${change.type}`}>{change.type}</span>
-                  <span className="latest-change-date">
-                    {new Date(change.date).toLocaleDateString()}
-                  </span>
+                  <div className="latest-change-actions">
+                    <button 
+                      className="edit-button" 
+                      onClick={(e) => handleEditClick(e, change)}
+                      title="Edit entry"
+                    >
+                      ✏️
+                    </button>
+                    <span className="latest-change-date">
+                      {formatDate(change.date)}
+                    </span>
+                  </div>
                 </div>
                 <div className="latest-change-summary">{change.summary}</div>
                 {change.author && (
@@ -423,7 +478,7 @@ function Dashboard({ repository, changelog }) {
               </div>
               <div className="modal-meta-item">
                 <span className="meta-label">Date:</span>
-                <span>{new Date(selectedChange.date).toLocaleDateString()}</span>
+                <span>{formatDate(selectedChange.date)}</span>
               </div>
               {selectedChange.author && (
                 <div className="modal-meta-item">
@@ -431,6 +486,19 @@ function Dashboard({ repository, changelog }) {
                   <span>{selectedChange.author}</span>
                 </div>
               )}
+            </div>
+            
+            <div className="modal-actions">
+              <button 
+                className="edit-button-large" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeChangeDetails();
+                  handleEditClick(e, selectedChange);
+                }}
+              >
+                Edit Entry
+              </button>
             </div>
             
             {selectedChange.details && (
@@ -466,8 +534,16 @@ function Dashboard({ repository, changelog }) {
           </div>
         </div>
       )}
+
+      {/* Edit Entry Modal */}
+      <EditEntryModal 
+        isOpen={isEditModalOpen}
+        onClose={closeEditModal}
+        onSubmit={handleEditSubmit}
+        entry={editingEntry}
+      />
     </div>
   );
 }
 
-export default Dashboard; 
+export default Dashboard;

@@ -70,7 +70,7 @@ def authorized():
         
         session['access_token'] = token['access_token']
         print(f"Saved access token to session")
-        
+
         # Get user info from GitHub
         resp = oauth.github.get('user', token=token)
         print(f"GitHub API response status: {resp.status_code}")
@@ -155,25 +155,12 @@ def get_changelog(repo_id):
     
     return jsonify(changelog)
 
-@app.route('/api/repos/<repo_id>/changelog', methods=['POST'])
+@app.route('/api/repos/<repo_id>/entries/<entry_id>', methods=['PUT'])
 @auth_required
-def update_changelog(repo_id):
-    """Update or create a changelog for a repository."""
+def update_changelog_entry(repo_id, entry_id):
+    """Update or create a changelog entry for a repository."""
     data = request.json
-    
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-    
-    # Ensure the repository exists
-    repos = storage.get_repositories()
-    repo_exists = any(repo['id'] == repo_id for repo in repos)
-    
-    if not repo_exists:
-        return jsonify({"error": "Repository not found"}), 404
-    
-    # Save the changelog
-    storage.save_changelog(repo_id, data)
-    
+    storage.update_changelog_entry(repo_id, entry_id, data)
     return jsonify({"success": True})
 
 @app.route('/api/repos', methods=['POST'])

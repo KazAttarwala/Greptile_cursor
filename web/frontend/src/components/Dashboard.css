@@ -148,6 +148,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .activity-bar {
@@ -156,6 +157,7 @@
   border-radius: 2px 2px 0 0;
   transition: height 0.3s ease;
   position: relative;
+  align-self: flex-end;
 }
 
 .activity-bar:hover {
@@ -588,4 +590,47 @@
 .pagination-info {
   font-size: 0.9rem;
   color: #6c757d;
+}
+
+.latest-change-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.edit-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.edit-button:hover {
+  opacity: 1;
+  background: none;
+}
+
+.edit-button-large {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.edit-button-large:hover {
+  background-color: #0069d9;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin: 1rem 0;
 } 

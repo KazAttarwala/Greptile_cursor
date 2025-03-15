@@ -156,6 +156,42 @@ function App() {
     }
   };
 
+  // Add the editEntry function to handle updating entries
+  const editEntry = async (updatedEntry) => {
+    if (!selectedRepo || !isAuthenticated) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5001/api/repos/${selectedRepo.id}/entries/${updatedEntry.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          entry: {
+            summary: updatedEntry.summary,
+            details: updatedEntry.details,
+            type: updatedEntry.type,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update entry');
+      }
+
+      // Refresh changelog after updating entry
+      await fetchChangelog(selectedRepo.id);
+      setError(null);
+    } catch (err) {
+      setError('Failed to update entry');
+      console.error('Error updating entry:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="App">
       <header className="App-header">
@@ -214,7 +250,11 @@ function App() {
                     Add New Entry
                   </button>
                 </div>
-                <Dashboard repository={selectedRepo} changelog={changelog} />
+                <Dashboard 
+                  repository={selectedRepo} 
+                  changelog={changelog} 
+                  onEditEntry={editEntry} 
+                />
               </>
             ) : (
               <div className="no-selection">

@@ -121,7 +121,7 @@ class ChangelogStorage:
         
         conn.commit()
         conn.close()
-    
+
     def get_changelog(self, repo_id: str) -> Optional[Dict[str, Any]]:
         """
         Get changelog data for a repository.
@@ -165,6 +165,29 @@ class ChangelogStorage:
 
         # Save the updated changelog
         self.save_changelog(repo_id, changelog)
+
+    def update_changelog_entry(self, repo_id: str, entry_id: str, entry: Dict[str, Any]) -> None:
+        """
+        Update an existing entry in a repository's changelog.
+        
+        Args:
+            repo_id: Repository identifier
+            entry_id: Entry identifier
+            entry: Updated entry dictionary
+        """
+        changelog = self.get_changelog(repo_id)
+        if not changelog:
+            return
+
+        # Find the entry to update
+        for change in changelog["changes"]:
+            if change["id"] == entry_id:
+                change.update(entry)
+                break
+
+        # Save the updated changelog
+        self.save_changelog(repo_id, changelog)
+
 
     def delete_repository(self, repo_id: str) -> None:
         """
@@ -236,7 +259,7 @@ class ChangelogStorage:
             # Update existing user
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET username = ?, email = ?, avatar_url = ?, 
                     access_token = ?, last_login = ?
                 WHERE github_id = ?
