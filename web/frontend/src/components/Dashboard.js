@@ -113,7 +113,7 @@ function Dashboard({ repository, changelog }) {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h2>Metrics</h2>
+        <h2>At a glance</h2>
       </div>
 
       <div className="metrics-grid">

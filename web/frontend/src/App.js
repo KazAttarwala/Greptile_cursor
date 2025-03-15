@@ -62,7 +62,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Changelog Dashboard</h1>
+        <h1>Changelog Viewer</h1>
       </header>
 
       <div className="container">
