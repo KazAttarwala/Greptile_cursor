@@ -139,7 +139,3 @@ The backend provides the following API endpoints:
 
 - `GET /api/repos` - List all repositories
 - `GET /api/repos/{repo_id}/changelog` - Get changelog for a repository
-- `POST /api/repos` - Add a new repository
-- `POST /api/repos/{repo_id}/changelog` - Update a repository's changelog
-- `POST /api/repos/{repo_id}/entries` - Add a new changelog entry
-- `DELETE /api/repos/{repo_id}` - Delete a repository
