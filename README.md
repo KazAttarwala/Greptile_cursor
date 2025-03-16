@@ -17,6 +17,7 @@ Looking back there are several flaws with the system that I don't like
 4. The cli does not allow editing of a changelog during generation. I would like to add that capability.
 5. The changelogs are not semantically versioned. I want to add versions so it is clear what version a developer would have to have to use the features in the changelog.
 6. The cli of course would have to be deployed as a python package
+7. The cli does not allow you to preview the changelog before publishing it to the web app. Once you run the generate command it automatically saves it to the db and effectively publishes it to the client. This is not great because you would inevitably want to edit the changelog before publishing it to the public and not just rely on AI generated content.
 
 
 ## Features
@@ -25,7 +26,6 @@ Looking back there are several flaws with the system that I don't like
 - 🔄 Automatic categorization of changes
 - 📝 Manual entry support
 - 🌐 Clean, searchable web interface
-- 🔍 Preview before publishing
 - 📅 Chronological organization
 
 ## Setup
@@ -112,10 +112,6 @@ python cli/main.py add --repo repo-id --summary "Added new feature" --type featu
 python cli/main.py preview --repo repo-id
 ```
 
-### Publish Changelog
-
-```bash
-python cli/main.py publish --repo repo-id --version v1.0.0
 ```
 
 ### List Repositories
